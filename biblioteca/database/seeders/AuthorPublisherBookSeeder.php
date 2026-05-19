@@ -10,16 +10,16 @@ use App\Models\Publisher;
 
 class AuthorPublisherBookSeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
-        // Agora o PHP saberá onde encontrar a classe Author
-        Author::factory(100)->create()->each(function ($author) {
-            $publisher = Publisher::factory()->create();
-            
+        $publishers = Publisher::factory(20)->create();
+
+        Author::factory(100)->create()->each(function ($author) use ($publishers) {
+
             $author->books()->createMany(
                 Book::factory(10)->make([
                     'category_id' => Category::inRandomOrder()->first()->id,
-                    'publisher_id' => $publisher->id,
+                    'publisher_id' => $publishers->random()->id,
                 ])->toArray()
             );
         });

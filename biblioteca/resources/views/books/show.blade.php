@@ -5,78 +5,124 @@
     <h1 class="my-4">Detalhes do Livro</h1>
     
     @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
     @endif
 
-    <div class="card mb-4">
-        <div class="card-header"><strong>Título:</strong> {{ $book->title }}</div>
-        <div class="card-body">
-            <p><strong>Autor:</strong> <a href="{{ route('authors.show', $book->author->id) }}">{{ $book->author->name }}</a></p>
-            <p><strong>Páginas:</strong> {{ $book->pages }}</p>
-            <p><strong>Editora:</strong> <a href="{{ route('publishers.show', $book->publisher->id) }}">{{ $book->publisher->name }}</a></p>
-            <p><strong>Categoria:</strong> <a href="{{ route('categories.show', $book->category->id) }}">{{ $book->category->name }}</a></p>
+    <div class="card mb-4 shadow-sm">
+        <div class="row g-0">
+            <div class="col-md-3 text-center p-3 bg-light d-flex align-items-center justify-content-center border-end rounded-start">
+                <img src="{{ $book->cover_image ? asset('storage/' . $book->cover_image) : asset('images/default-cover.png') }}" 
+                     alt="Capa do Livro: {{ $book->title }}" 
+                     class="img-fluid rounded shadow" 
+                     style="max-height: 280px; object-fit: cover;">
+            </div>
+            
+            <div class="col-md-9">
+                <div class="card-header bg-white border-bottom-0 pt-3">
+                    <h3 class="card-title text-primary mb-0">{{ $book->title }}</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <p><strong>Autor:</strong> {{ $book->author->name }}</p>
+                            <p><strong>Páginas:</strong> <span class="badge bg-secondary">{{ $book->pages }} págs</span></p>
+                        </div>
+                        <div class="col-sm-6">
+                            <p><strong>Editora:</strong> {{ $book->publisher->name }}</p>
+                            <p><strong>Categoria:</strong> {{ $book->category->name }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="card mb-4"> {{-- [cite: 833] --}}
-        <div class="card-header">Registrar Empréstimo</div> {{-- [cite: 834] --}}
-        <div class="card-body"> {{-- [cite: 835] --}}
-            <form action="{{ route('books.borrow', $book) }}" method="POST"> {{-- [cite: 836] --}}
-                @csrf
-                <div class="mb-3"> {{-- [cite: 838] --}}
-                    <label for="user_id" class="form-label">Usuário</label> {{-- [cite: 839] --}}
-                    <select class="form-select" id="user_id" name="user_id" required> {{-- [cite: 840] --}}
-                        <option value="" selected disabled>Selecione um usuário</option> {{-- [cite: 841] --}}
-                        @foreach($users as $user) {{-- [cite: 841] --}}
-                            <option value="{{ $user->id }}">{{ $user->name }}</option> {{-- [cite: 842] --}}
-                        @endforeach
-                    </select> {{-- [cite: 843] --}}
-                </div> {{-- [cite: 844] --}}
-                <button type="submit" class="btn btn-success">Registrar Empréstimo</button> {{-- [cite: 845, 846] --}}
-            </form> {{-- [cite: 847] --}}
-        </div> {{-- [cite: 848] --}}
-    </div> {{-- [cite: 849] --}}
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-dark text-white">Registrar Novo Empréstimo</div>
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <form action="{{ route('books.borrow', $book->id) }}" method="POST">
+                        @csrf
+                        <div class="mb-3">
+                            <label for="user_id" class="form-label">Selecionar Usuário</label>
+                            <select class="form-select @error('user_id') is-invalid @enderror" id="user_id" name="user_id" required>
+                                <option value="" selected disabled>Escolha o leitor...</option>
+                                @foreach($users as $user)
+                                    <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
+                                @endforeach
+                            </select>
+                            @error('user_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-journal-plus"></i> Conceder Empréstimo
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
 
-    <div class="card"> {{-- [cite: 851] --}}
-        <div class="card-header">Histórico de Empréstimos</div> {{-- [cite: 852] --}}
-        <div class="card-body"> {{-- [cite: 853] --}}
-            @if($book->users->isEmpty()) {{-- [cite: 854] --}}
-                <p>Nenhum empréstimo registrado para este livro.</p> {{-- [cite: 855] --}}
-            @else
-                <table class="table table-bordered"> {{-- [cite: 857] --}}
-                    <thead> {{-- [cite: 857] --}}
-                        <tr> {{-- [cite: 859] --}}
-                            <th>Usuário</th> {{-- [cite: 860] --}}
-                            <th>Data de Empréstimo</th> {{-- [cite: 861] --}}
-                            <th>Data de Devolução</th> {{-- [cite: 862] --}}
-                            <th>Ações</th> {{-- [cite: 863] --}}
-                        </tr> {{-- [cite: 864] --}}
-                    </thead> {{-- [cite: 865] --}}
-                    <tbody> {{-- [cite: 866] --}}
-                        @foreach($book->users as $user) {{-- [cite: 867] --}}
-                        <tr> {{-- [cite: 868] --}}
-                            <td><a href="{{ route('users.show', $user->id) }}">{{ $user->name }}</a></td> {{-- [cite: 870, 871] --}}
-                            <td>{{ $user->pivot->borrowed_at }}</td> {{-- [cite: 874] --}}
-                            <td>{{ $user->pivot->returned_at ?? 'Em Aberto' }}</td> {{-- [cite: 875] --}}
-                            <td> {{-- [cite: 876] --}}
-                                @if(is_null($user->pivot->returned_at)) {{-- [cite: 878] --}}
-                                    <form action="{{ route('borrowings.return', $user->pivot->id) }}" method="POST"> {{-- [cite: 879] --}}
-                                        @csrf
-                                        @method('PATCH') {{-- [cite: 881] --}}
-                                        <button class="btn btn-warning btn-sm">Devolver</button> {{-- [cite: 882] --}}
-                                    </form> {{-- [cite: 883] --}}
-                                @else
-                                    <span class="badge bg-success">Devolvido</span>
-                                @endif
-                            </td> {{-- [cite: 885] --}}
-                        </tr> {{-- [cite: 886] --}}
-                        @endforeach
-                    </tbody> {{-- [cite: 888] --}}
-                </table> {{-- [cite: 889] --}}
-            @endif
-        </div> {{-- [cite: 891] --}}
-    </div> {{-- [cite: 892] --}}
+        <div class="col-md-8 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-dark text-white">Histórico de Movimentações</div>
+                <div class="card-body">
+                    @if($book->users->isEmpty())
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-archive style=font-size: 2rem;"></i>
+                            <p class="mt-2 mb-0">Nenhum empréstimo registrado para este livro até o momento.</p>
+                        </div>
+                    @else
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Usuário</th>
+                                        <th>Retirada</th>
+                                        <th>Devolução</th>
+                                        <th class="text-center">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($book->users as $user)
+                                    <tr>
+                                        <td>
+                                            <a href="{{ route('users.show', $user->id) }}" class="text-decoration-none fw-bold">
+                                                {{ $user->name }}
+                                            </a>
+                                        </td>
+                                        <td class="small">{{ $user->pivot->borrowed_at }}</td>
+                                        <td class="small">
+                                            {{ $user->pivot->returned_at ?? 'Em Aberto' }}
+                                        </td>
+                                        <td class="text-center">
+                                            @if(is_null($user->pivot->returned_at))
+                                                <form action="{{ route('borrowings.return', $user->pivot->id) }}" method="POST" style="display:inline;">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit" class="btn btn-warning btn-sm">
+                                                        <i class="bi bi-arrow-counterclockwise"></i> Devolver
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <span class="badge bg-success p-2">Devolvido</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <a href="{{ route('books.index') }}" class="btn btn-secondary mt-3"><i class="bi bi-arrow-left"></i> Voltar</a>
+    <a href="{{ route('books.index') }}" class="btn btn-secondary shadow-sm">
+        <i class="bi bi-arrow-left"></i> Voltar para a Listagem
+    </a>
 </div>
 @endsection

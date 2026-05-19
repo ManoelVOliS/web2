@@ -3,45 +3,84 @@
 @section('content')
 <div class="container">
     <h1 class="my-4">Editar Livro</h1>
-    <form action="{{ route('books.update', $book) }}" method="POST">
-        @csrf
-        @method('PUT')
-        <div class="mb-3">
-            <label for="title" class="form-label">Título</label>
-            <input type="text" class="form-control @error('title') is-invalid @enderror" id="title" name="title" value="{{ old('title', $book->title) }}" required>
-            @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
-        </div>
-        <div class="mb-3">
-            <label for="pages" class="form-label">Páginas</label>
-            <input type="number" class="form-control @error('pages') is-invalid @enderror" id="pages" name="pages" value="{{ old('pages', $book->pages) }}" required>
-            @error('pages') <div class="invalid-feedback">{{ $message }}</div> @enderror
-        </div>
-        <div class="mb-3">
-            <label for="publisher_id" class="form-label">Editora</label>
-            <select class="form-select @error('publisher_id') is-invalid @enderror" id="publisher_id" name="publisher_id" required>
-                @foreach($publishers as $publisher)
-                    <option value="{{ $publisher->id }}" {{ $publisher->id == $book->publisher_id ? 'selected' : '' }}>{{ $publisher->name }}</option>
+
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
                 @endforeach
-            </select>
+            </ul>
         </div>
-        <div class="mb-3">
-            <label for="author_id" class="form-label">Autor</label>
-            <select class="form-select @error('author_id') is-invalid @enderror" id="author_id" name="author_id" required>
-                @foreach($authors as $author)
-                    <option value="{{ $author->id }}" {{ $author->id == $book->author_id ? 'selected' : '' }}>{{ $author->name }}</option>
-                @endforeach
-            </select>
+    @endif
+
+    <div class="card">
+        <div class="card-body">
+            <form action="{{ route('books.update', $book->id) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
+
+                <div class="mb-3">
+                    <label for="title" class="form-label">Título do Livro</label>
+                    <input type="text" class="form-control @error('title') is-invalid @enderror" id="title" name="title" value="{{ old('title', $book->title) }}" required>
+                    @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+
+                <div class="mb-3">
+                    <label for="author_id" class="form-label">Autor</label>
+                    <select class="form-select @error('author_id') is-invalid @enderror" id="author_id" name="author_id" required>
+                        @foreach($authors as $author)
+                            <option value="{{ $author->id }}" {{ old('author_id', $book->author_id) == $author->id ? 'selected' : '' }}>{{ $author->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('author_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+
+                <div class="mb-3">
+                    <label for="category_id" class="form-label">Categoria</label>
+                    <select class="form-select @error('category_id') is-invalid @enderror" id="category_id" name="category_id" required>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}" {{ old('category_id', $book->category_id) == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('category_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+
+                <div class="mb-3">
+                    <label for="publisher_id" class="form-label">Editora</label>
+                    <select class="form-select @error('publisher_id') is-invalid @enderror" id="publisher_id" name="publisher_id" required>
+                        @foreach($publishers as $publisher)
+                            <option value="{{ $publisher->id }}" {{ old('publisher_id', $book->publisher_id) == $publisher->id ? 'selected' : '' }}>{{ $publisher->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('publisher_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+
+                <div class="mb-3">
+                    <label for="pages" class="form-label">Número de Páginas</label>
+                    <input type="number" class="form-control @error('pages') is-invalid @enderror" id="pages" name="pages" value="{{ old('pages', $book->pages) }}" required>
+                    @error('pages') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+
+                <div class="mb-3">
+                    <label for="cover_image" class="form-label">Substituir Capa do Livro</label>
+                    @if($book->cover_image)
+                        <div class="mb-2">
+                            <span class="d-block text-muted small mb-1">Capa Atual:</span>
+                            <img src="{{ asset('storage/' . $book->cover_image) }}" alt="Capa Atual" style="max-height: 120px;" class="img-thumbnail shadow-sm">
+                        </div>
+                    @endif
+                    <input type="file" class="form-control @error('cover_image') is-invalid @enderror" id="cover_image" name="cover_image" accept="image/*">
+                    <div class="form-text">Deixe em branco se não desejar alterar a imagem atual.</div>
+                    @error('cover_image') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Atualizar Livro
+                </button>
+                <a href="{{ route('books.index') }}" class="btn btn-secondary">Cancelar</a>
+            </form>
         </div>
-        <div class="mb-3">
-            <label for="category_id" class="form-label">Categoria</label>
-            <select class="form-select @error('category_id') is-invalid @enderror" id="category_id" name="category_id" required>
-                @foreach($categories as $category)
-                    <option value="{{ $category->id }}" {{ $category->id == $book->category_id ? 'selected' : '' }}>{{ $category->name }}</option>
-                @endforeach
-            </select>
-        </div>
-        <button type="submit" class="btn btn-success">Atualizar</button>
-        <a href="{{ route('books.index') }}" class="btn btn-secondary">Cancelar</a>
-    </form>
+    </div>
 </div>
 @endsection
